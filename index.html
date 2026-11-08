@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>বেফাক বুক শপ ম্যানেজমেন্ট</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Hind Siliguri', sans-serif; }
+        @media print {
+            body * { visibility: hidden; }
+            #chalan-modal, #chalan-modal * { visibility: visible; }
+            #chalan-modal { position: absolute; left: 0; top: 0; width: 100%; height: 100%; background: #fff; }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-indigo-900 text-white shadow-md sticky top-0 z-50">
+        <div class="w-full px-6 py-3.5 flex justify-between items-center">
+            <h1 class="text-lg font-bold">📖 বেফাক বুক শপ ম্যানেজমেন্ট</h1>
+            <span class="text-xs bg-indigo-800 px-3 py-1.5 rounded-lg">সিস্টেম</span>
+        </div>
+    </header>
+
+    <div class="flex-1 w-full flex flex-col lg:flex-row">
+        <!-- Sidebar -->
+        <aside class="w-full lg:w-60 bg-white p-4 shadow-sm border-r border-slate-200 flex flex-col space-y-2">
+            <button onclick="switchTab('shop')" id="btn-shop" class="w-full text-left px-4 py-2.5 rounded-xl font-bold bg-indigo-600 text-white text-sm">🌐 অনলাইন শপ</button>
+            <button onclick="switchTab('tab1')" id="btn-tab1" class="w-full text-left px-4 py-2.5 rounded-xl font-semibold text-slate-600 hover:bg-slate-100 text-sm">🛍️ অর্ডার তালিকা</button>
+            <button onclick="switchTab('tab2')" id="btn-tab2" class="w-full text-left px-4 py-2.5 rounded-xl font-semibold text-slate-600 hover:bg-slate-100 text-sm">➕ বই এন্ট্রি ও স্টক</button>
+            <button onclick="switchTab('tab3')" id="btn-tab3" class="w-full text-left px-4 py-2.5 rounded-xl font-semibold text-slate-600 hover:bg-slate-100 text-sm">📊 বিক্রয় রিপোর্ট</button>
+        </aside>
+
+        <!-- Main Area -->
+        <main class="flex-1 p-6 overflow-x-auto">
+
+            <!-- TAB 1: Order List -->
+            <div id="section-tab1" class="space-y-6 hidden">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h2 class="text-lg font-bold mb-4">🛍️ অর্ডার ও চালান তালিকা</h2>
+                    <table class="w-full text-left border-collapse text-sm">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700">
+                                <th class="p-3">অর্ডার আইডি</th>
+                                <th class="p-3">গ্রাহক</th>
+                                <th class="p-3">মোবাইল</th>
+                                <th class="p-3">বিবরণ</th>
+                                <th class="p-3">মূল্য</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-list" class="divide-y divide-slate-100"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB 2: Book Entry & Inventory -->
+            <div id="section-tab2" class="space-y-6 hidden">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h2 class="text-lg font-bold mb-4">➕ নতুন বই এন্ট্রি</h2>
+                    <form id="book-form" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <input type="text" id="book-name" required placeholder="বইয়ের নাম" class="border border-slate-300 rounded-xl px-4 py-2.5 text-sm">
+                        <select id="book-category" class="border border-slate-300 rounded-xl px-4 py-2.5 text-sm font-semibold">
+                            <option value="befaq">বেফাক বোর্ড বই</option>
+                            <option value="dorsi">দরসি কিতাব</option>
+                        </select>
+                        <input type="number" id="buy-price" required placeholder="ক্রয় মূল্য" oninput="calcPrice()" class="border border-slate-300 rounded-xl px-4 py-2.5 text-sm">
+                        <input type="number" id="commission" value="0" placeholder="কমিশন %" oninput="calcPrice()" class="border border-slate-300 rounded-xl px-4 py-2.5 text-sm">
+                        <input type="number" id="sell-price" required placeholder="বিক্রয় মূল্য" class="border border-slate-300 rounded-xl px-4 py-2.5 text-sm bg-indigo-50 font-bold text-indigo-700">
+                        <input type="number" id="book-stock" required min="1" placeholder="স্টক পরিমাণ" class="border border-slate-300 rounded-xl px-4 py-2.5 text-sm">
+                        <input type="file" id="book-image" accept="image/*" class="sm:col-span-2 border border-slate-300 rounded-xl p-2 text-sm">
+                        <button type="submit" class="sm:col-span-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl text-sm">বই সেভ করুন</button>
+                    </form>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h2 class="text-lg font-bold mb-4">📦 বর্তমান স্টক</h2>
+                    <table class="w-full text-left border-collapse text-sm">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700">
+                                <th class="p-3">ছবি</th>
+                                <th class="p-3">নাম</th>
+                                <th class="p-3">ক্রয়</th>
+                                <th class="p-3">বিক্রয়</th>
+                                <th class="p-3">স্টক</th>
+                                <th class="p-3">অ্যাকশন</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-list" class="divide-y divide-slate-100"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB 3: Sales Report -->
+            <div id="section-tab3" class="space-y-6 hidden">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h2 class="text-lg font-bold mb-4">📊 বিক্রয় রিপোর্ট ও ডিলিট অপশন</h2>
+                    <div class="grid grid-cols-3 gap-4 mb-6">
+                        <div class="bg-indigo-50 p-4 rounded-xl text-indigo-900 font-bold">মোট বই: <span id="total-books-count">0</span></div>
+                        <div class="bg-purple-50 p-4 rounded-xl text-purple-900 font-bold">মোট অর্ডার: <span id="total-orders-count">0</span></div>
+                        <div class="bg-emerald-50 p-4 rounded-xl text-emerald-900 font-bold">মোট বিক্রয়: <span id="total-sales-amount">৳0</span></div>
+                    </div>
+                    <table class="w-full text-left border-collapse text-sm">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700">
+                                <th class="p-3">তারিখ ও সময়</th>
+                                <th class="p-3">গ্রাহক</th>
+                                <th class="p-3">বিবরণ</th>
+                                <th class="p-3">মূল্য</th>
+                                <th class="p-3 text-center">ডিলিট</th>
+                            </tr>
+                        </thead>
+                        <tbody id="report-list" class="divide-y divide-slate-100"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ONLINE SHOP -->
+            <div id="section-shop" class="space-y-6">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                    <input type="text" id="search-box" oninput="renderShop()" placeholder="বই সার্চ করুন..." class="w-full md:w-72 border border-slate-300 rounded-xl px-4 py-2.5 text-sm">
+                    <div class="bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm">🛒 কার্টে আছে: <span id="cart-count">0</span> টি</div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <button onclick="setCategory('befaq')" id="btn-cat-befaq" class="p-4 rounded-xl font-bold text-left bg-indigo-600 text-white text-sm">📚 বেফাক বোর্ড বই</button>
+                    <button onclick="setCategory('dorsi')" id="btn-cat-dorsi" class="p-4 rounded-xl font-bold text-left bg-white border border-slate-300 text-slate-700 text-sm">📖 দরসি কিতাব</button>
+                </div>
+
+                <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+                    <div id="shop-books-grid" class="xl:col-span-9 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
+
+                    <div id="checkout-container" class="xl:col-span-3 bg-white p-5 rounded-2xl shadow-md border border-slate-200 hidden sticky top-20">
+                        <div class="flex justify-between items-center mb-3 border-b pb-2">
+                            <h3 class="font-bold text-sm">অর্ডার কনফার্ম করুন</h3>
+                            <button onclick="document.getElementById('checkout-container').classList.add('hidden')" class="text-rose-500 font-bold">✕</button>
+                        </div>
+                        <div id="cart-items-summary" class="mb-3 max-h-40 overflow-y-auto space-y-2 text-xs"></div>
+                        <form id="order-form" class="space-y-3">
+                            <input type="text" id="cust-name" required placeholder="আপনার নাম" class="w-full border rounded-lg px-3 py-2 text-xs">
+                            <input type="text" id="cust-phone" required placeholder="মোবাইল নম্বর" class="w-full border rounded-lg px-3 py-2 text-xs">
+                            <textarea id="cust-address" required rows="2" placeholder="পূর্ণ ঠিকানা" class="w-full border rounded-lg px-3 py-2 text-xs"></textarea>
+                            <div class="flex justify-between font-bold text-xs bg-slate-100 p-2 rounded-lg">
+                                <span>মোট:</span> <span id="cart-total-price" class="text-indigo-600">৳0</span>
+                            </div>
+                            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-lg text-xs">অর্ডার প্লেস করুন</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Chalan Modal -->
+    <div id="chalan-modal" class="fixed inset-0 bg-slate-900/50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden">
+            <div class="bg-slate-900 p-4 text-white text-center font-bold">বিক্রয় চালান</div>
+            <div class="p-6 max-h-[70vh] overflow-y-auto text-xs" id="chalan-modal-content"></div>
+            <div class="p-4 bg-slate-100 flex justify-between no-print">
+                <button onclick="window.print()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-xs font-bold">প্রিন্ট</button>
+                <button onclick="document.getElementById('chalan-modal').classList.add('hidden')" class="bg-slate-700 text-white px-4 py-2 rounded-lg text-xs">বন্ধ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script -->
+    <script>
+        let books = JSON.parse(localStorage.getItem('books_inventory')) || [];
+        let orders = JSON.parse(localStorage.getItem('book_orders')) || [];
+        let cart = [];
+        let currentCat = 'befaq';
+
+        function calcPrice() {
+            let buy = parseFloat(document.getElementById('buy-price').value) || 0;
+            let com = parseFloat(document.getElementById('commission').value) || 0;
+            document.getElementById('sell-price').value = Math.round(buy - (buy * (com / 100)));
+        }
+
+        function switchTab(id) {
+            ['section-shop', 'section-tab1', 'section-tab2', 'section-tab3'].forEach(s => document.getElementById(s).classList.add('hidden'));
+            ['btn-shop', 'btn-tab1', 'btn-tab2', 'btn-tab3'].forEach(b => document.getElementById(b).className = "w-full text-left px-4 py-2.5 rounded-xl font-semibold text-slate-600 hover:bg-slate-100 text-sm");
+            
+            document.getElementById('section-' + id).classList.remove('hidden');
+            document.getElementById('btn-' + id).className = "w-full text-left px-4 py-2.5 rounded-xl font-bold bg-indigo-600 text-white text-sm";
+
+            if(id === 'shop') renderShop();
+            if(id === 'tab1') renderOrders();
+            if(id === 'tab2') renderInventory();
+            if(id === 'tab3') renderReport();
+        }
+
+        document.getElementById('book-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            let file = document.getElementById('book-image').files[0];
+            let save = (img) => {
+                books.push({
+                    id: Date.now(),
+                    name: document.getElementById('book-name').value,
+                    category: document.getElementById('book-category').value,
+                    buyPrice: document.getElementById('buy-price').value,
+                    sellPrice: document.getElementById('sell-price').value,
+                    commission: document.getElementById('commission').value,
+                    stock: parseInt(document.getElementById('book-stock').value) || 0,
+                    image: img || ''
+                });
+                localStorage.setItem('books_inventory', JSON.stringify(books));
+                e.target.reset();
+                renderInventory();
+                alert('বই সফলভাবে সংরক্ষিত হয়েছে!');
+            };
+            if(file) {
+                let reader = new FileReader();
+                reader.onload = (e) => save(e.target.result);
+                reader.readAsDataURL(file);
+            } else { save(''); }
+        });
+
+        function renderInventory() {
+            let list = document.getElementById('inventory-list');
+            list.innerHTML = books.length ? '' : `<tr><td colspan="6" class="p-4 text-center text-slate-400">কোনো বই নেই।</td></tr>`;
+            books.forEach((b, i) => {
+                list.innerHTML += `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-3"><img src="${b.image}" class="w-10 h-12 object-contain bg-slate-100 rounded"></td>
+                        <td class="p-3 font-semibold">${b.name}</td>
+                        <td class="p-3 text-slate-600">৳${b.buyPrice}</td>
+                        <td class="p-3 text-indigo-600 font-bold">৳${b.sellPrice}</td>
+                        <td class="p-3">${b.stock || 0} টি</td>
+                        <td class="p-3"><button onclick="deleteBook(${i})" class="bg-rose-50 text-rose-600 px-3 py-1 rounded text-xs font-bold border border-rose-200">ডিলিট</button></td>
+                    </tr>`;
+            });
+        }
+
+        function deleteBook(i) {
+            if(confirm('বইটি ডিলিট করতে চান?')) {
+                books.splice(i, 1);
+                localStorage.setItem('books_inventory', JSON.stringify(books));
+                renderInventory();
+            }
+        }
+
+        function setCategory(cat) {
+            currentCat = cat;
+            document.getElementById('btn-cat-befaq').className = cat === 'befaq' ? "p-4 rounded-xl font-bold text-left bg-indigo-600 text-white text-sm" : "p-4 rounded-xl font-bold text-left bg-white border border-slate-300 text-slate-700 text-sm";
+            document.getElementById('btn-cat-dorsi').className = cat === 'dorsi' ? "p-4 rounded-xl font-bold text-left bg-indigo-600 text-white text-sm" : "p-4 rounded-xl font-bold text-left bg-white border border-slate-300 text-slate-700 text-sm";
+            renderShop();
+        }
+
+        function renderShop() {
+            let q = document.getElementById('search-box').value.toLowerCase();
+            let grid = document.getElementById('shop-books-grid');
+            let filtered = books.filter(b => (b.category === currentCat || (!b.category && currentCat === 'befaq')) && b.name.toLowerCase().includes(q));
+            
+            grid.innerHTML = filtered.length ? '' : `<div class="col-span-full p-6 text-center text-slate-400">বই পাওয়া যায়নি।</div>`;
+            filtered.forEach(b => {
+                let out = (b.stock || 0) <= 0;
+                grid.innerHTML += `
+                    <div class="bg-white p-3 rounded-xl border border-slate-200 flex items-center gap-3 ${out ? 'opacity-50' : ''}">
+                        <img src="${b.image}" class="w-16 h-20 object-contain bg-slate-50 rounded">
+                        <div class="flex-1">
+                            <h4 class="font-bold text-xs mb-1 line-clamp-2">${b.name}</h4>
+                            <p class="text-[11px] text-emerald-600 font-bold mb-1">স্টক: ${b.stock || 0}</p>
+                            <p class="text-indigo-600 font-bold text-sm">৳${b.sellPrice}</p>
+                            <button onclick="addToCart(${b.id})" ${out ? 'disabled' : ''} class="mt-2 w-full ${out ? 'bg-slate-300' : 'bg-indigo-600 hover:bg-indigo-700'} text-white font-bold py-1 rounded text-xs">অর্ডার</button>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function addToCart(id) {
+            let b = books.find(x => x.id === id);
+            let item = cart.find(x => x.id === id);
+            let qty = item ? item.quantity + 1 : 1;
+            if(qty > b.stock) return alert('স্টক পর্যাপ্ত নয়!');
+            if(item) item.quantity = qty;
+            else cart.push({...b, quantity: 1});
+            updateCart();
+            document.getElementById('checkout-container').classList.remove('hidden');
+        }
+
+        function updateCart() {
+            document.getElementById('cart-count').innerText = cart.reduce((a, c) => a + c.quantity, 0);
+            let sumEl = document.getElementById('cart-items-summary');
+            sumEl.innerHTML = '';
+            let total = 0;
+            cart.forEach(i => {
+                total += i.sellPrice * i.quantity;
+                sumEl.innerHTML += `<div class="flex justify-between items-center bg-slate-50 p-1.5 rounded"><span>${i.name} (x${i.quantity})</span><span class="font-bold">৳${i.sellPrice * i.quantity}</span></div>`;
+            });
+            document.getElementById('cart-total-price').innerText = '৳' + total;
+        }
+
+        document.getElementById('order-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            if(!cart.length) return alert('কার্ট খালি!');
+            cart.forEach(ci => {
+                let bk = books.find(x => x.id === ci.id);
+                if(bk) bk.stock = Math.max(0, (bk.stock || 0) - ci.quantity);
+            });
+            localStorage.setItem('books_inventory', JSON.stringify(books));
+
+            orders.push({
+                orderId: 'ORD-' + Math.floor(100000 + Math.random() * 900000),
+                customer: { name: document.getElementById('cust-name').value, phone: document.getElementById('cust-phone').value, address: document.getElementById('cust-address').value },
+                items: [...cart],
+                totalAmount: cart.reduce((a, c) => a + (c.sellPrice * c.quantity), 0),
+                date: new Date().toLocaleString()
+            });
+            localStorage.setItem('book_orders', JSON.stringify(orders));
+
+            alert('অর্ডার সফলভাবে সম্পন্ন হয়েছে!');
+            cart = [];
+            updateCart();
+            e.target.reset();
+            document.getElementById('checkout-container').classList.add('hidden');
+            renderShop();
+        });
+
+        function renderOrders() {
+            let list = document.getElementById('orders-list');
+            list.innerHTML = orders.length ? '' : `<tr><td colspan="5" class="p-4 text-center text-slate-400">কোনো অর্ডার নেই।</td></tr>`;
+            orders.forEach(o => {
+                let summary = o.items.map(i => `${i.name} (x${i.quantity})`).join(', ');
+                list.innerHTML += `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-3 font-mono font-bold text-indigo-600 cursor-pointer underline" onclick="showChalan('${o.orderId}')">${o.orderId}</td>
+                        <td class="p-3 font-semibold">${o.customer.name}</td>
+                        <td class="p-3">${o.customer.phone}</td>
+                        <td class="p-3 text-xs text-slate-500">${summary}</td>
+                        <td class="p-3 font-bold">৳${o.totalAmount}</td>
+                    </tr>`;
+            });
+        }
+
+        function showChalan(id) {
+            let o = orders.find(x => x.orderId === id);
+            if(!o) return;
+            let html = `<p><b>অর্ডার আইডি:</b> ${o.orderId}</p><p><b>গ্রাহক:</b> ${o.customer.name} (${o.customer.phone})</p><p><b>ঠিকানা:</b> ${o.customer.address}</p><hr class="my-2">`;
+            html += `<table class="w-full border text-xs"><thead><tr class="bg-slate-100"><th class="p-2 border">বই</th><th class="p-2 border">পরিমাণ</th><th class="p-2 border">মূল্য</th></tr></thead><tbody>`;
+            o.items.forEach(i => { html += `<tr><td class="p-2 border">${i.name}</td><td class="p-2 border">${i.quantity} টি</td><td class="p-2 border">৳${i.sellPrice * i.quantity}</td></tr>`; });
+            html += `</tbody></table><p class="mt-2 font-bold text-right">সর্বমোট: ৳${o.totalAmount}</p>`;
+            document.getElementById('chalan-modal-content').innerHTML = html;
+            document.getElementById('chalan-modal').classList.remove('hidden');
+        }
+
+        function renderReport() {
+            document.getElementById('total-books-count').innerText = books.length + ' টি';
+            document.getElementById('total-orders-count').innerText = orders.length + ' টি';
+            let total = orders.reduce((a, c) => a + c.totalAmount, 0);
+            document.getElementById('total-sales-amount').innerText = '৳' + total;
+
+            let list = document.getElementById('report-list');
+            list.innerHTML = orders.length ? '' : `<tr><td colspan="5" class="p-4 text-center text-slate-400">কোনো রিপোর্ট নেই।</td></tr>`;
+            orders.forEach((o, i) => {
+                let summary = o.items.map(x => `${x.name} (x${x.quantity})`).join(', ');
+                list.innerHTML += `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-3 text-xs text-slate-500">${o.date}</td>
+                        <td class="p-3 font-semibold">${o.customer.name}</td>
+                        <td class="p-3 text-xs text-slate-500">${summary}</td>
+                        <td class="p-3 font-bold text-indigo-600">৳${o.totalAmount}</td>
+                        <td class="p-3 text-center"><button onclick="deleteOrder(${i})" class="bg-rose-50 text-rose-600 px-3 py-1 rounded text-xs font-bold border border-rose-200">ডিলিট</button></td>
+                    </tr>`;
+            });
+        }
+
+        function deleteOrder(i) {
+            if(confirm('এই লেনদেন বা অর্ডারটি ডিলিট করতে চান?')) {
+                orders.splice(i, 1);
+                localStorage.setItem('book_orders', JSON.stringify(orders));
+                renderReport();
+                renderOrders();
+            }
+        }
+
+        renderShop();
+    </script>
+</body>
+</html>
